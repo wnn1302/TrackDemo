@@ -52,7 +52,7 @@ public class BaiduMapFragment extends SupportMapFragment {
     public static final int TRACK_MODEL_MOTO = 1;
 
     //定位间隔
-    private int scanSpan = 0;
+    private int scanSpan = 3000;
 
     //是否开始轨迹
     private boolean isSureFirstPoint;

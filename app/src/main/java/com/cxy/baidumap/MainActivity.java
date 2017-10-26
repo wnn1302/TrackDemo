@@ -103,14 +103,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mapFragment.setMyLocationMode();
-                btn_follow.setEnabled(false);
             }
         });
         btn_location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mapFragment.gotoMyLocation();
-                btn_location.setEnabled(false);
             }
         });
     }
