@@ -31,7 +31,7 @@ public class NoiseFilterUtil {
             if (location.getSpeed() == 0) {//静止
                 currSpeedMode = MODE_STATIC;
             } else if (0 < location.getSpeed()) {//运动
-                if (location.getSpeed() < HUMAN_WALK_SPEED_NORMAL) { //运动-行走
+                if (location.getSpeed() < HUMAN_WALK_SPEED_NORMAL) { //运动
                     //运动状态切换时重置其他运动状态下的漂移记录
                     currSpeedMode = HUMAN_WALK_SPEED_NORMAL;
                 } else if (HUMAN_WALK_SPEED_NORMAL < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED_NORMAL) {//运动-跑步
