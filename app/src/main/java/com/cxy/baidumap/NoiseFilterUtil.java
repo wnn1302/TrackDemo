@@ -4,18 +4,87 @@ import com.baidu.location.BDLocation;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.baidu.mapapi.utils.DistanceUtil.getDistance;
-
 /**
  * Created by TD01 on 2017/10/25.
  */
 
 public class NoiseFilterUtil {
+    private static int time;//轨迹漂移次数记录
 
-    private static int N = 12;
+    private static double speedMode = -1;//记录状态
+
+    private static LatLng firstPoint;
+
+    private static double currMaxDistance;
+
+    private static final double HUMAN_WALK_SPEED_NORMAL = 1.39;//m/s
+    private static final double HUMAN_RUN_SPEED_NORMAL = 2.78;//m/s
+    private static final double MOTO_SPEED_NORMAL = 22.22;//m/s
+    private static final double MODE_STATIC = 0;//静止状态
+
+    public static LatLng filterNoise(LatLng firstLatlng, BDLocation location, int scanSpan) {
+        LatLng currLatlng = new LatLng(location.getLatitude(), location.getLongitude());
+        double currSpeedMode = 0;
+        if (firstPoint == null) {
+            firstPoint = firstLatlng;
+        } else {
+            if (location.getSpeed() == 0) {//静止
+                //currSpeedMode = MODE_STATIC;
+                time = 0;
+            } else if (0 < location.getSpeed()) {//运动
+                //不同运动状态各自记录漂移次数
+                time++;
+                if (location.getSpeed() < HUMAN_WALK_SPEED_NORMAL) { //运动-行走
+                    //运动状态切换时重置其他运动状态下的漂移记录
+                    currSpeedMode = HUMAN_WALK_SPEED_NORMAL;
+                } else if (HUMAN_WALK_SPEED_NORMAL < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED_NORMAL) {//运动-跑步
+                    currSpeedMode = HUMAN_RUN_SPEED_NORMAL;
+                } else if (HUMAN_RUN_SPEED_NORMAL < location.getSpeed() && location.getSpeed() < MOTO_SPEED_NORMAL) {//运动-摩托/电动
+                    currSpeedMode = MOTO_SPEED_NORMAL;
+                }
+            }
+            checkLatlng(currLatlng, currSpeedMode, scanSpan);
+        }
+        return null;
+    }
+
+    private static LatLng checkLatlng(LatLng currLatlng, double currSpeedMode, int scanSpan) {
+        //首点获取之后的第一个点的上一个状态与当前状态认为是一样的
+        if (speedMode == -1) {
+            speedMode = currSpeedMode;
+        }
+
+        //运动状态发生改变
+        if (speedMode != currSpeedMode) {
+            speedMode = currSpeedMode;
+            //状态切换后新状态第一个点发生漂移则滤掉,如果滤掉了则没有点返回，
+            //firstPoint依旧是上个状态的最后一个点:
+            currMaxDistance = (speedMode + currSpeedMode) / 2 * scanSpan;//两种状态之间过度取两种速度平均值
+            double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
+            if (0 < distance && distance < currMaxDistance) {
+                time = 0;
+                firstPoint = currLatlng;
+                currMaxDistance = 0;
+                return currLatlng;
+            }
+            time = 1;
+        } else {
+            //maxDistance需要随轨迹漂移的次数递增，因为人在运动，
+            //起始点与下一个正确定位点之离也一直在增长
+            currMaxDistance = speedMode * scanSpan * time;
+            double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
+            if (0 < distance && distance < currMaxDistance) {
+                //重置次数记录，因为java原始类型参数不能传递引用，所以重置所有time
+                firstPoint = currLatlng;
+                currMaxDistance = 0;
+                return currLatlng;
+            }
+        }
+        return null;
+    }
+
+    //中位值+均值滤波
+/*    private static int N = 12;
 
     private static int n = 0;
 
@@ -69,34 +138,6 @@ public class NoiseFilterUtil {
             }
         }
         return null;
-    }
+    }*/
 
-    private static int time;
-
-    private static double currMaxDistance;
-
-    private static LatLng firstPoint;
-
-    public static LatLng nosiseFiltering(LatLng firstLatlng, BDLocation location, double maxDistance) {
-        LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
-        if (firstPoint == null) {
-            firstPoint = firstLatlng;
-        } else {
-            if (location.getSpeed() == 0) {//静止
-                time = 0;
-                firstPoint = ll;
-            } else if (location.getSpeed() > 0) {//运动
-                time++;
-                currMaxDistance = maxDistance * time;//maxDistance需要随比较的次数递增
-                double distance = DistanceUtil.getDistance(firstPoint, ll);
-                if (distance > 0 && distance < currMaxDistance) {//运动中
-                    firstPoint = ll;
-                    time = 0;
-                    currMaxDistance = 0;
-                    return ll;
-                }
-            }
-        }
-        return null;
-    }
 }

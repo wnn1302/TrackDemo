@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btn_moto;
     private Button btn_start;
     private Button btn_output;
+    private Button btn_follow;
+    private Button btn_location;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         btn_moto = (Button) findViewById(R.id.btn_moto);
         btn_start = (Button) findViewById(R.id.btn_start);
         btn_output = (Button) findViewById(R.id.btn_output);
+        btn_follow = (Button) findViewById(R.id.btn_follow);
+        btn_location = (Button) findViewById(R.id.btn_location);
 
         btn_walk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,6 +97,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mapFragment.outputAllTrackPoints();
                 btn_output.setEnabled(false);
+            }
+        });
+        btn_follow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mapFragment.setMyLocationMode();
+                btn_follow.setEnabled(false);
+            }
+        });
+        btn_location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mapFragment.gotoMyLocation();
+                btn_location.setEnabled(false);
             }
         });
     }

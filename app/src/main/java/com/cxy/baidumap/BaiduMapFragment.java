@@ -52,11 +52,13 @@ public class BaiduMapFragment extends SupportMapFragment {
     public static final int TRACK_MODEL_MOTO = 1;
 
     //定位间隔
-    private int scanSpan = 3000;
+    private int scanSpan = 0;
 
     //是否开始轨迹
     private boolean isSureFirstPoint;
     private List<LatLng> allTrackPoints = new ArrayList<>();
+
+    private LatLng currLatlng;
 
     @Override
     public void onStart() {
@@ -67,7 +69,7 @@ public class BaiduMapFragment extends SupportMapFragment {
 //        List<LatLng> resultPoints = new ArrayList<>();
 //        //noiseFiltering(points);
 //        for (LatLng ll : points) {
-//            LatLng result = NoiseFilterUtil.nosiseFiltering(points.get(0), ll, 44.44);
+//            LatLng result = NoiseFilterUtil.filterNoise(points.get(0), ll, 44.44);
 //            if (null != result) {
 //                resultPoints.add(result);
 //            }
@@ -86,7 +88,7 @@ public class BaiduMapFragment extends SupportMapFragment {
         BufferedReader br;
         List<LatLng> lls = new ArrayList<>();
         try {
-            is = getResources().getAssets().open("All_Track_Points.txt");
+            is = getResources().getAssets().open("My_Track_Points.txt");
             isr = new InputStreamReader(is);// 字符流
             br = new BufferedReader(isr);// 缓冲流
             String str;
@@ -174,11 +176,27 @@ public class BaiduMapFragment extends SupportMapFragment {
         map.setMyLocationData(locData);
 
         LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
-        MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
-        map.animateMapStatus(u);//移动到定位点
         allTrackPoints.add(ll);
         //绘制轨迹
         drawTrackLine(location);
+    }
+
+    public void setMyLocationMode() {
+        BaiduMap map = getBaiduMap();
+        if (map.getLocationConfigeration().locationMode
+                == MyLocationConfiguration.LocationMode.NORMAL) {
+            map.setMyLocationConfigeration(new MyLocationConfiguration(
+                    MyLocationConfiguration.LocationMode.FOLLOWING, true, null));
+        } else {
+            map.setMyLocationConfigeration(new MyLocationConfiguration(
+                    MyLocationConfiguration.LocationMode.NORMAL, true, null));
+        }
+    }
+
+    public void gotoMyLocation() {
+        if (currLatlng == null) return;
+        MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(currLatlng);
+        getBaiduMap().animateMapStatus(u);//移动到定位点
     }
 
     /**
@@ -204,7 +222,7 @@ public class BaiduMapFragment extends SupportMapFragment {
             return;
         } else if (trackPoints.size() > 0) {
             //过滤噪点
-            if (null != NoiseFilterUtil.nosiseFiltering(trackPoints.get(0), location, maxDistance)) {
+            if (null != NoiseFilterUtil.filterNoise(trackPoints.get(0), location, scanSpan)) {
                 trackPoints.add(currPoint);
                 //绘制轨迹
                 addPolyline(trackPoints);
@@ -242,7 +260,7 @@ public class BaiduMapFragment extends SupportMapFragment {
             buffer.append(ll.latitude + "," + ll.longitude + "\n");
         }
 
-        File file = new File(Environment.getExternalStorageDirectory() + "/TrackPoints/All_Track_Points.txt");
+        File file = new File(Environment.getExternalStorageDirectory() + "/TrackPoints/" + System.currentTimeMillis() + ".txt");
         try {
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
