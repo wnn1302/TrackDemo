@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 btn_walk.setEnabled(true);
             }
         });
+
         btn_start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -92,10 +93,11 @@ public class MainActivity extends AppCompatActivity {
                 btn_start.setEnabled(false);
             }
         });
+
         btn_output.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mapFragment.outputAllTrackPoints();
+                mapFragment.outputAllTrackPoints();//输出坐标
                 btn_output.setEnabled(false);
             }
         });
