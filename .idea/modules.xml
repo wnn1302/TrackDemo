@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/BaiduMapDemo.iml" filepath="$PROJECT_DIR$/BaiduMapDemo.iml" />
+      <module fileurl="file://E:\ASWorkSpace\Demo\TrackDemo\BaiduMapDemo.iml" filepath="E:\ASWorkSpace\Demo\TrackDemo\BaiduMapDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/TrackDemo.iml" filepath="$PROJECT_DIR$/TrackDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>

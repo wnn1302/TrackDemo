@@ -17,9 +17,9 @@ public class NoiseFilterUtil {
 
     private static double currMaxDistance;
 
-    private static final double HUMAN_WALK_SPEED_NORMAL = 1.39;//m/s
-    private static final double HUMAN_RUN_SPEED_NORMAL = 2.78;//m/s
-    private static final double VEHICLE_SPEED_NORMAL = 22.22;//m/s
+    private static final double HUMAN_WALK_SPEED = 1.39;//m/s
+    private static final double HUMAN_RUN_SPEED = 2.78;//m/s
+    private static final double VEHICLE_SPEED = 22.22;//m/s
     private static final double MODE_STATIC = 0;//静止状态
 
     public static LatLng filterNoise(LatLng firstLatlng, BDLocation location, int scanSpan) {
@@ -27,17 +27,18 @@ public class NoiseFilterUtil {
         double currSpeedMode = 0;
         if (firstPoint == null) {
             firstPoint = firstLatlng;
+            System.out.println("----> make sure firstPoint.");
         } else {
             if (location.getSpeed() == 0) {//静止
                 currSpeedMode = MODE_STATIC;
             } else if (0 < location.getSpeed()) {//运动
-                if (location.getSpeed() < HUMAN_WALK_SPEED_NORMAL) { //运动
+                if (location.getSpeed() < HUMAN_WALK_SPEED) { //运动
                     //运动状态切换时重置其他运动状态下的漂移记录
-                    currSpeedMode = HUMAN_WALK_SPEED_NORMAL;
-                } else if (HUMAN_WALK_SPEED_NORMAL < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED_NORMAL) {//运动-跑步
-                    currSpeedMode = HUMAN_RUN_SPEED_NORMAL;
-                } else if (HUMAN_RUN_SPEED_NORMAL < location.getSpeed() && location.getSpeed() < VEHICLE_SPEED_NORMAL) {//运动-摩托/电动
-                    currSpeedMode = VEHICLE_SPEED_NORMAL;
+                    currSpeedMode = HUMAN_WALK_SPEED;
+                } else if (HUMAN_WALK_SPEED < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED) {//运动-跑步
+                    currSpeedMode = HUMAN_RUN_SPEED;
+                } else if (HUMAN_RUN_SPEED < location.getSpeed() && location.getSpeed() < VEHICLE_SPEED) {//运动-摩托/电动
+                    currSpeedMode = VEHICLE_SPEED;
                 }
             }
 
@@ -47,31 +48,39 @@ public class NoiseFilterUtil {
             }
 
             //速度模式切换了，time必置0，相当于重新开始
-            if (speedMode != currSpeedMode) time = 0;
+            if (speedMode != currSpeedMode) {
+                time = 0;
+                speedMode = currSpeedMode;
+            }
 
-            checkLatlng(currLatlng, currSpeedMode, scanSpan);
+            return checkLatlng(currLatlng, scanSpan);
         }
         return null;
     }
 
-    private static LatLng checkLatlng(LatLng currLatlng, double currSpeedMode, int scanSpan) {
-        if (currSpeedMode == MODE_STATIC) {
+    private static LatLng checkLatlng(LatLng currLatlng, int scanSpan) {
+        if (speedMode == MODE_STATIC) {
+            System.out.println("----> static");
             return firstPoint;
-        } else {
-            time++;
-            currMaxDistance = speedMode * scanSpan * time;
-            double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
-            if (0 < distance && distance < currMaxDistance) {
-                time = 0;
-                firstPoint = currLatlng;
-                return currLatlng;
-            }
+        }
+
+        time++;
+        System.out.println("----> speed mode:" + speedMode);
+        System.out.println("----> time:" + time);
+        currMaxDistance = speedMode * scanSpan * time;
+        double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
+        if (0 < distance && distance < currMaxDistance) {
+            time = 0;
+            firstPoint = currLatlng;
+            System.out.println("----> return latlng");
+            return currLatlng;
+
         }
         return null;
     }
 
     //中位值+均值滤波
-/*    private static int N = 12;
+/*  private static int N = 12;
 
     private static int n = 0;
 

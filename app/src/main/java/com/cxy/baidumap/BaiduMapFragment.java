@@ -65,21 +65,43 @@ public class BaiduMapFragment extends SupportMapFragment {
         super.onStart();
         initMap();
         initMapLoaction();
+
+        //模拟轨迹
+//        LatLng ll_camera = new LatLng(26.023313, 119.418714);
+//        MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll_camera);
+//        getBaiduMap().animateMapStatus(u);//移动到定位点
+//
 //        List<LatLng> points = readPoints();
 //        List<LatLng> resultPoints = new ArrayList<>();
-//        //noiseFiltering(points);
+//        int i = 0;
+//        Random random = new Random(22);
 //        for (LatLng ll : points) {
-//            LatLng result = NoiseFilterUtil.filterNoise(points.get(0), ll, 44.44);
+//            i++;
+//            BDLocation location = new BDLocation();
+
+//            if (i < 10) {
+//                location.setSpeed(0);//静止
+//            } else if (10 <= i && i < 20) {
+//                location.setSpeed(1.3f);//行走
+//            } else if (20 <= i && i < 30) {
+//                location.setSpeed(2.7f);//跑步
+//            } else if (30 <= i && i < 40) {
+//                location.setSpeed(22.0f);//车辆
+//            } else {
+//                return;
+//            }
+//            float speed = random.nextFloat() * 22;
+//            float speed = 22.22f;
+//            location.setSpeed(speed);
+//            location.setLatitude(ll.latitude);
+//            location.setLongitude(ll.longitude);
+//            LatLng result = NoiseFilterUtil.filterNoise(points.get(0), location, scanSpan);
 //            if (null != result) {
 //                resultPoints.add(result);
 //            }
 //        }
-//        resultPoints = simplify(resultPoints);
-//        System.out.println("----> points size: " + resultPoints.size());
+//        System.out.println("result size:" + resultPoints.size());
 //        addPolyline(resultPoints);
-//        LatLng ll = new LatLng(26.023313, 119.418714);
-//        MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
-//        getBaiduMap().animateMapStatus(u);//移动到定位点
     }
 
     private List<LatLng> readPoints() {
@@ -140,6 +162,7 @@ public class BaiduMapFragment extends SupportMapFragment {
         } else {
             trackLine.setPoints(lls);
         }
+        System.out.println("----> drawing");
     }
 
     private void initMap() {

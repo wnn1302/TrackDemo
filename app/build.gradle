@@ -5,12 +5,12 @@ android {
         config {
             keyAlias 'wnn'
             keyPassword 'wnn134740'
-            storeFile file('D:/ASKeyStore/wnnkeystore')
+            storeFile file('E:/ASKeyStore/wnnkeystore.jks')
             storePassword 'wnn134740'
         }
     }
     compileSdkVersion 23
-    buildToolsVersion "25.0.2"
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "com.cxy.baidumap"
         minSdkVersion 15
