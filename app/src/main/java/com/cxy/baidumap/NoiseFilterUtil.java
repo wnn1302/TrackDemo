@@ -34,11 +34,11 @@ public class NoiseFilterUtil {
         //判断当前运动模式
         if (location.getSpeed() == 0) {//静止
             currSpeedMode = MODE_STATIC;
-        } else if (0 < location.getSpeed() && location.getSpeed() < HUMAN_WALK_SPEED) { //运动
+        } else if (0 < location.getSpeed() && location.getSpeed() <= HUMAN_WALK_SPEED) { //运动
             currSpeedMode = HUMAN_WALK_SPEED;
-        } else if (HUMAN_WALK_SPEED < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED) {//运动-跑步
+        } else if (HUMAN_WALK_SPEED < location.getSpeed() && location.getSpeed() <= HUMAN_RUN_SPEED) {//运动-跑步
             currSpeedMode = HUMAN_RUN_SPEED;
-        } else if (HUMAN_RUN_SPEED < location.getSpeed() && location.getSpeed() < VEHICLE_SPEED) {//运动-摩托/电动
+        } else if (HUMAN_RUN_SPEED < location.getSpeed() && location.getSpeed() <= VEHICLE_SPEED) {//运动-摩托/电动
             currSpeedMode = VEHICLE_SPEED;
         }
 
@@ -59,7 +59,7 @@ public class NoiseFilterUtil {
 
         //如果是保持静止状态无论漂移多少次都不累计
         if (speedMode == MODE_STATIC) {
-
+            return null;
         } else {//如果是保持运动状态累计漂移次数
             time++;
             System.out.println("----> speed mode:" + speedMode);
