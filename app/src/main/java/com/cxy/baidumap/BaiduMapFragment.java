@@ -311,5 +311,4 @@ public class BaiduMapFragment extends SupportMapFragment {
             speedBuffer.append(String.valueOf(location.getSpeed() + "," + location.getRadius()) + "\n");
         }
     }
-
 }

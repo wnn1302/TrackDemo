@@ -15,8 +15,6 @@ public class NoiseFilterUtil {
 
     private static LatLng firstPoint;
 
-    private static double currMaxDistance;
-
     private static final double HUMAN_WALK_SPEED = 1.39;//m/s
     private static final double HUMAN_RUN_SPEED = 2.78;//m/s
     private static final double VEHICLE_SPEED = 22.22;//m/s
@@ -25,56 +23,72 @@ public class NoiseFilterUtil {
     public static LatLng filterNoise(LatLng firstLatlng, BDLocation location, int scanSpan) {
         LatLng currLatlng = new LatLng(location.getLatitude(), location.getLongitude());
         double currSpeedMode = 0;
+
+        //设置首点
         if (firstPoint == null) {
             firstPoint = firstLatlng;
             System.out.println("----> make sure firstPoint.");
-        } else {
-            if (location.getSpeed() == 0) {//静止
-                currSpeedMode = MODE_STATIC;
-            } else if (0 < location.getSpeed()) {//运动
-                if (location.getSpeed() < HUMAN_WALK_SPEED) { //运动
-                    //运动状态切换时重置其他运动状态下的漂移记录
-                    currSpeedMode = HUMAN_WALK_SPEED;
-                } else if (HUMAN_WALK_SPEED < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED) {//运动-跑步
-                    currSpeedMode = HUMAN_RUN_SPEED;
-                } else if (HUMAN_RUN_SPEED < location.getSpeed() && location.getSpeed() < VEHICLE_SPEED) {//运动-摩托/电动
-                    currSpeedMode = VEHICLE_SPEED;
-                }
-            }
-
-            //首点获取之后的第一个点的上一个状态与当前状态认为是一样的
-            if (speedMode == -1) {
-                speedMode = currSpeedMode;
-            }
-
-            //速度模式切换了，time必置0，相当于重新开始
-            if (speedMode != currSpeedMode) {
-                time = 0;
-                speedMode = currSpeedMode;
-            }
-
-            return checkLatlng(currLatlng, scanSpan);
+            return null;
         }
+
+        //判断当前运动模式
+        if (location.getSpeed() == 0) {//静止
+            currSpeedMode = MODE_STATIC;
+        } else if (0 < location.getSpeed() && location.getSpeed() < HUMAN_WALK_SPEED) { //运动
+            currSpeedMode = HUMAN_WALK_SPEED;
+        } else if (HUMAN_WALK_SPEED < location.getSpeed() && location.getSpeed() < HUMAN_RUN_SPEED) {//运动-跑步
+            currSpeedMode = HUMAN_RUN_SPEED;
+        } else if (HUMAN_RUN_SPEED < location.getSpeed() && location.getSpeed() < VEHICLE_SPEED) {//运动-摩托/电动
+            currSpeedMode = VEHICLE_SPEED;
+        }
+
+        //首点获取之后的第一个点的上一个状态与当前状态认为是一致的
+        if (speedMode == -1) {
+            speedMode = currSpeedMode;
+        }
+
+        //速度模式切换，time必置0，重新开始计算
+        if (speedMode != currSpeedMode) {
+            if (null != checkLatlngWhenSpeedChange(currSpeedMode, scanSpan, currLatlng)) {
+                time = 0;
+            } else {
+                time = 1;
+            }
+            speedMode = currSpeedMode;
+        }
+
+        //如果是保持静止状态无论漂移多少次都不累计
+        if (speedMode == MODE_STATIC) {
+
+        } else {//如果是保持运动状态累计漂移次数
+            time++;
+            System.out.println("----> speed mode:" + speedMode);
+            System.out.println("----> time:" + time);
+            double currMaxDistance = speedMode * scanSpan * time;
+            double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
+            if (0 < distance && distance < currMaxDistance) {
+                time = 0;
+                firstPoint = currLatlng;
+                System.out.println("----> return latlng");
+                return currLatlng;
+            }
+        }
+
         return null;
     }
 
-    private static LatLng checkLatlng(LatLng currLatlng, int scanSpan) {
-        if (speedMode == MODE_STATIC) {
-            System.out.println("----> static");
-            return firstPoint;
-        }
-
-        time++;
-        System.out.println("----> speed mode:" + speedMode);
-        System.out.println("----> time:" + time);
-        currMaxDistance = speedMode * scanSpan * time;
+    /**
+     * 初次切换态时，有一个减速的过程，
+     * 根据两种状态的平均速度判断下一个状态的首点
+     */
+    private static LatLng checkLatlngWhenSpeedChange(double currSpeedMode, double scanSpan, LatLng currLatlng) {
+        //从运动的最后一个点减速到新状态的第一个点之间最大理论距离
+        double currMaxDistance = (speedMode + currSpeedMode) / 2 * scanSpan;
         double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
-        if (0 < distance && distance < currMaxDistance) {
-            time = 0;
+        if (distance < currMaxDistance) {
             firstPoint = currLatlng;
-            System.out.println("----> return latlng");
+            speedMode = currSpeedMode;
             return currLatlng;
-
         }
         return null;
     }
