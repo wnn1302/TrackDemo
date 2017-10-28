@@ -178,7 +178,7 @@ public class BaiduMapFragment extends SupportMapFragment {
 
         ///LocationClientOption类用来设置定位SDK的定位方式，
         LocationClientOption option = new LocationClientOption(); //以下是给定位设置参数
-        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        option.setLocationMode(LocationClientOption.LocationMode.Device_Sensors);
         option.setOpenGps(true); // 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
         option.setScanSpan(scanSpan);

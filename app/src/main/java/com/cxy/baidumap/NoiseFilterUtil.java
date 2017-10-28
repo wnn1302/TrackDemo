@@ -15,6 +15,8 @@ public class NoiseFilterUtil {
 
     private static LatLng firstPoint;
 
+    private static double changeDistance;//速度切换时两点的距离
+
     private static final double HUMAN_WALK_SPEED = 1.39;//m/s
     private static final double HUMAN_RUN_SPEED = 2.78;//m/s
     private static final double VEHICLE_SPEED = 22.22;//m/s
@@ -49,22 +51,19 @@ public class NoiseFilterUtil {
 
         //速度模式切换，time必置0，重新开始计算
         if (speedMode != currSpeedMode) {
-            if (null != checkLatlngWhenSpeedChange(currSpeedMode, scanSpan, currLatlng)) {
-                time = 0;
-            } else {
-                time = 1;
-            }
+            time = 0;
             speedMode = currSpeedMode;
+            LatLng changeLatlng = checkLatlngWhenSpeedChange(currSpeedMode, scanSpan, currLatlng);
+            if (changeLatlng != null) changeDistance = 0;
+            return changeLatlng;
         }
 
         //如果是保持静止状态无论漂移多少次都不累计
-        if (speedMode == MODE_STATIC) {
-            return null;
-        } else {//如果是保持运动状态累计漂移次数
+        if (speedMode != MODE_STATIC) {
             time++;
             System.out.println("----> speed mode:" + speedMode);
             System.out.println("----> time:" + time);
-            double currMaxDistance = speedMode * scanSpan * time;
+            double currMaxDistance = changeDistance + speedMode * scanSpan * time;
             double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
             if (0 < distance && distance < currMaxDistance) {
                 time = 0;
@@ -83,9 +82,9 @@ public class NoiseFilterUtil {
      */
     private static LatLng checkLatlngWhenSpeedChange(double currSpeedMode, double scanSpan, LatLng currLatlng) {
         //从运动的最后一个点减速到新状态的第一个点之间最大理论距离
-        double currMaxDistance = (speedMode + currSpeedMode) / 2 * scanSpan;
+        changeDistance = (speedMode + currSpeedMode) / 2 * scanSpan;
         double distance = DistanceUtil.getDistance(firstPoint, currLatlng);
-        if (distance < currMaxDistance) {
+        if (distance < changeDistance) {
             firstPoint = currLatlng;
             speedMode = currSpeedMode;
             return currLatlng;
